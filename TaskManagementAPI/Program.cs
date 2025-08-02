@@ -12,15 +12,31 @@ using TaskManagementAPI.Services.Interfaces;
 using System.Threading.RateLimiting;
 using TaskManagementAPI.Middleware;
 using Microsoft.AspNetCore.RateLimiting;
+using TaskManagementAPI.Repository.Interfaces;
+using TaskManagementAPI.Repository.Implementations;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 
-
-
 // Add services to the container.
+
+// Register services in Program.cs
+builder.Services.AddScoped<IOrganizationService, OrganizationService>();
+builder.Services.AddScoped<ITeamService, TeamService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<ITaskStatusService, TaskStatusService>();
+
+// Register repositories and UnitOfWork
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
+builder.Services.AddScoped<ITeamRepository, TeamRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<ITaskStatusRepository, TaskStatusRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Configure strongly typed settings
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
