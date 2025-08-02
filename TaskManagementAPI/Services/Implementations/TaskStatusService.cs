@@ -32,7 +32,7 @@ namespace TaskManagementAPI.Services.Implementations
             throw new NotImplementedException();
         }
 
-        public Task<TaskStatusDto> UpdateAsync(int id, UpdateTaskStatusDto dto, string userId)
+        public Task<TaskStatusDto> UpdateAsync(int id, UpdateStatusDto dto, string userId)
         {
             throw new NotImplementedException();
         }

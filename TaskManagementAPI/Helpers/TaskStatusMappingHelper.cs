@@ -41,7 +41,7 @@ namespace TaskManagementAPI.Helpers
             };
         }
 
-        public static void UpdateEntity(Models.Entities.TaskStatus entity, UpdateTaskStatusDto dto)
+        public static void UpdateEntity(Models.Entities.TaskStatus entity, UpdateStatusDto dto)
         {
             if (!string.IsNullOrEmpty(dto.Name))
                 entity.Name = dto.Name;

@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TaskManagementAPI.Models.DTOs.TaskStatus
 {
-    public class UpdateTaskStatusDto
+    public class UpdateStatusDto
     {
         [StringLength(100)]
         public string? Name { get; set; }
