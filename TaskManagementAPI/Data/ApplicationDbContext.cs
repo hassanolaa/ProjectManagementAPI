@@ -73,12 +73,49 @@ namespace TaskManagementAPI.Data
 
         private void ConfigureTaskRelationships(ModelBuilder builder)
         {
+            // Fix cascade delete conflicts
+
+            // TaskStatus relationship - Change to NoAction to prevent cascade cycle
+            builder.Entity<TaskItem>()
+                .HasOne(t => t.TaskStatus)
+                .WithMany(ts => ts.Tasks)
+                .HasForeignKey(t => t.TaskStatusId)
+                .OnDelete(DeleteBehavior.NoAction); // Changed from Cascade to NoAction
+
+            // Project relationship - Keep cascade (this is the primary delete path)
+            builder.Entity<TaskItem>()
+                .HasOne(t => t.Project)
+                .WithMany(p => p.Tasks)
+                .HasForeignKey(t => t.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Task comment self-referencing relationship
             builder.Entity<TaskComment>()
                 .HasOne(tc => tc.ParentComment)
                 .WithMany(tc => tc.Replies)
                 .HasForeignKey(tc => tc.ParentCommentId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // TaskComment to Task relationship - NoAction to prevent cascade conflicts
+            builder.Entity<TaskComment>()
+                .HasOne(tc => tc.Task)
+                .WithMany(t => t.Comments)
+                .HasForeignKey(tc => tc.TaskId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // TaskAttachment to Task relationship - NoAction to prevent cascade conflicts
+            builder.Entity<TaskAttachment>()
+                .HasOne(ta => ta.Task)
+                .WithMany(t => t.Attachments)
+                .HasForeignKey(ta => ta.TaskId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // TimeEntry to Task relationship - NoAction to prevent cascade conflicts
+            builder.Entity<TimeEntry>()
+                .HasOne(te => te.Task)
+                .WithMany(t => t.TimeEntries)
+                .HasForeignKey(te => te.TaskId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
 
         private void ConfigureIndexes(ModelBuilder builder)
@@ -99,5 +136,6 @@ namespace TaskManagementAPI.Data
             builder.Entity<TimeEntry>()
                 .HasIndex(te => new { te.UserId, te.Date });
         }
+
     }
 }
