@@ -10,6 +10,7 @@ services:
      - "8081:8081"
     depends_on:
      - sqlserver
+     - redis  
     environment:
      - ASPNETCORE_ENVIRONMENT=Development
     networks:
@@ -26,7 +27,19 @@ services:
       - "1433:1433"
     volumes:
       - sqlvolume:/var/opt/mssql
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - productnetwork
+  
+  redis:
+    image: redis:7-alpine
+    container_name: taskmanagement-redis
+    hostname: redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass TaskManagement2024
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
     networks:
       - productnetwork
 
@@ -35,3 +48,4 @@ networks:
 
 volumes:
   sqlvolume:
+  redisdata:

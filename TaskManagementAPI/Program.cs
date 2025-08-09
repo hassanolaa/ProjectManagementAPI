@@ -224,23 +224,57 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
     try
     {
-        // This will create the database if it doesn't exist
-        await context.Database.EnsureCreatedAsync();
+        // Use migrations instead of EnsureCreatedAsync
+        await context.Database.MigrateAsync();
 
-        // Or if you're using migrations:
-        // await context.Database.MigrateAsync();
-
-        Console.WriteLine("Database created successfully");
+        logger.LogInformation("Database migration completed successfully");
+        Console.WriteLine("Database migration completed successfully");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Database creation failed: {ex.Message}");
-        // Log the error but don't stop the application
+        logger.LogError(ex, "Database migration failed: {Message}", ex.Message);
+        Console.WriteLine($"Database migration failed: {ex.Message}");
+        // Don't stop the application - let it continue
     }
 }
+
+// solution 2
+//using (var scope = app.Services.CreateScope())
+//{
+//    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+//    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+//    try
+//    {
+//        // Check if database can be connected to
+//        var canConnect = await context.Database.CanConnectAsync();
+
+//        if (!canConnect)
+//        {
+//            await context.Database.EnsureCreatedAsync();
+//            logger.LogInformation("Database created successfully");
+//        }
+//        else
+//        {
+//            // Database exists, ensure tables are created
+//            await context.Database.EnsureCreatedAsync();
+//            logger.LogInformation("Database and tables verified successfully");
+//        }
+//    }
+//    catch (Exception ex)
+//    {
+//        logger.LogError(ex, "Database initialization failed: {Message}", ex.Message);
+//        Console.WriteLine($"Database initialization failed: {ex.Message}");
+//    }
+//}
+
+
+
+
 
 
 // Seed roles and admin user
