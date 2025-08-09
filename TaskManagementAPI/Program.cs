@@ -220,6 +220,28 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 
+// Add this section to create database automatically
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    try
+    {
+        // This will create the database if it doesn't exist
+        await context.Database.EnsureCreatedAsync();
+
+        // Or if you're using migrations:
+        // await context.Database.MigrateAsync();
+
+        Console.WriteLine("Database created successfully");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Database creation failed: {ex.Message}");
+        // Log the error but don't stop the application
+    }
+}
+
 
 // Seed roles and admin user
 using (var scope = app.Services.CreateScope())

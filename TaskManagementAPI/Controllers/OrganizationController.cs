@@ -9,7 +9,7 @@ namespace TaskManagementAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+   // [Authorize]
     public class OrganizationController : ControllerBase
     {
         private readonly IOrganizationService _organizationService;
