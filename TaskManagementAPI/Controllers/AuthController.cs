@@ -34,6 +34,25 @@ namespace TaskManagementAPI.Controllers
             _logger = logger;
         }
 
+//         [HttpPost("test-email")]
+
+// public async Task<IActionResult> TestEmail()
+// {
+//     try
+//     {
+//         await _emailSender.SendEmailAsync(
+//             "hssanabdl975@gmail.com",
+//             "Test Email",
+//             "This is a test email from Task Management API");
+            
+//         return Ok(new { message = "Email sent successfully" });
+//     }
+//     catch (Exception ex)
+//     {
+//         return BadRequest(new { message = $"Email failed: {ex.Message}" });
+//     }
+// }
+
         /// <summary>
         /// Register a new user account
         /// </summary>
@@ -77,7 +96,7 @@ namespace TaskManagementAPI.Controllers
         var userProfile = MappingHelper.MapToUserProfileDto(user, roles);
         
         // Comment out email sending for now
-                // await _emailSender.SendWelcomeEmailAsync(user.Email!, $"{user.FirstName} {user.LastName}");
+        await _emailSender.SendWelcomeEmailAsync(user.Email!, $"{user.FirstName} {user.LastName}");
 
                _logger.LogInformation("User {Email} registered and logged in successfully", dto.Email);
 

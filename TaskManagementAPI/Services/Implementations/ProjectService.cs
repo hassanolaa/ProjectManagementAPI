@@ -14,17 +14,26 @@ namespace TaskManagementAPI.Services.Implementations
         private readonly ITaskStatusService _taskStatusService;
         private readonly ILogger<ProjectService> _logger;
         private readonly ApplicationDbContext _context; // Add for direct context access
+        private readonly ICacheService _cacheService;
+
+        private const string PROJECT_CACHE_KEY = "project:{0}";
+        private const string USER_PROJECTS_CACHE_KEY = "user_projects:{0}";
+        private const string ORG_PROJECTS_CACHE_KEY = "org_projects:{0}";
+
 
         public ProjectService(
             IUnitOfWork unitOfWork, 
             ITaskStatusService taskStatusService,
             ILogger<ProjectService> logger,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            ICacheService cacheService
+            )
         {
             _unitOfWork = unitOfWork;
             _taskStatusService = taskStatusService;
             _logger = logger;
             _context = context;
+            _cacheService = cacheService;
         }
 
         public async Task<ProjectDto> CreateAsync(CreateProjectDto dto, string userId)
@@ -103,19 +112,25 @@ namespace TaskManagementAPI.Services.Implementations
 
         public async Task<ProjectDto?> GetByIdAsync(int id, string userId)
         {
+            var cacheKey = string.Format(PROJECT_CACHE_KEY, id);
+            var cachedProject = await _cacheService.GetAsync<ProjectDto>(cacheKey);
+
+            if (cachedProject != null)
+            {
+                return cachedProject;
+            }
+
+            // Get from database and cache
             var project = await _unitOfWork.Projects.GetByIdAsync(id);
             if (project == null) return null;
 
-            // Check if user has access
             var isMember = await _unitOfWork.Projects.IsUserMemberAsync(id, userId);
             if (!isMember) return null;
 
-            // Get additional data for DTO
-            var userRole = await _unitOfWork.Projects.GetUserRoleAsync(id, userId);
-            var taskCount = await _context.Tasks.CountAsync(t => t.ProjectId == id && t.IsActive);
-            var memberCount = await _context.ProjectMembers.CountAsync(m => m.ProjectId == id && m.IsActive);
+            var projectDto = ProjectMappingHelper.MapToDto(project);
+            await _cacheService.SetAsync(cacheKey, projectDto, TimeSpan.FromHours(1));
 
-            return ProjectMappingHelper.MapToDto(project, userRole ?? "", taskCount, memberCount);
+            return projectDto;
         }
 
         public async Task<IEnumerable<ProjectDto>> GetUserProjectsAsync(string userId)

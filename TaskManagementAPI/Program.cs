@@ -1,19 +1,20 @@
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 using System.Text;
+using System.Threading.RateLimiting;
 using TaskManagementAPI.Data;
+using TaskManagementAPI.Middleware;
 using TaskManagementAPI.Models.Configuration;
 using TaskManagementAPI.Models.Entities;
+using TaskManagementAPI.Repository.Implementations;
+using TaskManagementAPI.Repository.Interfaces;
 using TaskManagementAPI.Services.Implementations;
 using TaskManagementAPI.Services.Interfaces;
-using System.Threading.RateLimiting;
-using TaskManagementAPI.Middleware;
-using Microsoft.AspNetCore.RateLimiting;
-using TaskManagementAPI.Repository.Interfaces;
-using TaskManagementAPI.Repository.Implementations;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,6 +47,23 @@ builder.Services.Configure<RateLimitingSettings>(builder.Configuration.GetSectio
 // Database Configuration
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
+// Add Redis distributed caching
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    options.InstanceName = builder.Configuration["Redis:InstanceName"];
+});
+
+// Register Redis connection for direct access if needed
+builder.Services.AddSingleton<IConnectionMultiplexer>(provider =>
+{
+    var configuration = builder.Configuration.GetConnectionString("Redis");
+    return ConnectionMultiplexer.Connect(configuration);
+});
+
+builder.Services.AddScoped<ICacheService, CacheService>();
 
 // Identity Configuration
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
